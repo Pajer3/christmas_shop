@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from "next/navigation";
+import CartSummary from './cartSummary';  
 import '../styles/Header.css'; // Import the CSS file
 
 export default function Header() {
@@ -16,8 +17,8 @@ export default function Header() {
   return (
     <header className="header-wrapper">
       <nav className="links">
-        <Link href="/" className='header-link title'>
-          CHRISTMAS SHOP        
+        <Link href="/" className="header-link title">
+          CHRISTMAS SHOP
         </Link>
         <div className="apart">
           <Link href="/" className={`header-link ${pathName === '/' ? 'active-page-link' : ''}`}>
@@ -26,19 +27,14 @@ export default function Header() {
           <Link href="/shop" className={`header-link ${pathName === '/shop' ? 'active-page-link' : ''}`}>
             SHOP
           </Link>
-          <Link href="/cart" className={`header-link ${pathName === '/cart' ? 'active-page-link' : ''}`}>
-            CART
-          </Link>
           {status === 'authenticated' ? (
             <>
               <Link href="/account" className={`header-link ${pathName === '/account' ? 'active-page-link' : ''}`}>
                 ACCOUNT
               </Link>
-              {pathName !== '/account' && (
-                <button onClick={() => signOut()} className="header-link login logout">
-                  LOGOUT
-                </button>
-              )}
+              <button onClick={() => signOut()} className="header-link login logout">
+                LOGOUT
+              </button>
             </>
           ) : (
             <Link href="/login" className={`header-link login ${pathName === '/login' ? 'active-page-link' : ''}`}>
@@ -46,6 +42,7 @@ export default function Header() {
             </Link>
           )}
         </div>
+        <CartSummary /> 
       </nav>
     </header>
   );

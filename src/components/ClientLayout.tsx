@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Loader from './loader';
 import Header from './header';
 import { AuthProvider } from "@/providers";
+import { CartProvider } from '@/context/cartcontext'; // Import the CartProvider
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -19,8 +20,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <>
       <AuthProvider>
-        <Header />
-        {loading ? <Loader /> : children}
+        <CartProvider> {/* Wrap children with CartProvider */}
+          <Header />
+          {loading ? <Loader /> : children}
+        </CartProvider>
       </AuthProvider>
     </>
   );

@@ -1,11 +1,11 @@
 "use client";
-import Link from "next/link";
+import '../styles/home.css';
+import Page from '@/components/page';
 
-export default function Page() {
+export default function home() {
     return (
         <main>
-            <h1>Page</h1>
-        <Link href={"/account"}>here</Link>
+            <Page />
         </main>
     );
 }

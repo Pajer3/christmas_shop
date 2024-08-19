@@ -1,23 +1,52 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
-import '../styles/UserInfo.css';
+import "../styles/UserInfo.css";
+
+interface UserData {
+  firstName: string;
+  email: string;
+  phone: string;
+  password: string;
+}
 
 export default function UserInfo() {
-  const [activeSection, setActiveSection] = useState('account');
-  const { data: session } = useSession();
-  const [isEditing, setIsEditing] = useState({ field: '', editing: false });
-  const [userData, setUserData] = useState({
-    firstName: session?.user?.firstName || '',
-    email: session?.user?.email || '',
-    phone: session?.user?.phone || '',
-    password: session?.user?.password || '',
+  const [activeSection, setActiveSection] = useState("account");
+  const { data: session, status } = useSession();
+  const [isEditing, setIsEditing] = useState({ field: "", editing: false });
+  const [userData, setUserData] = useState<UserData>({
+    firstName: "",
+    email: "",
+    phone: "",
+    password: "",
   });
 
+  // Store original data to allow reverting on cancel
+  const [originalData, setOriginalData] = useState<UserData>({
+    firstName: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const user = session.user;
+      const initialData = {
+        firstName: user.firstName ?? "",
+        email: user.email ?? "",
+        phone: user.phone ?? "",
+        password: "", // Don't show the password directly
+      };
+      setUserData(initialData);
+      setOriginalData(initialData); // Set original data to the initial state
+    }
+  }, [session, status]);
+
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+    signOut({ callbackUrl: "/" });
   };
 
   const handleEditClick = (field: string) => {
@@ -30,50 +59,62 @@ export default function UserInfo() {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('../api/register', {
-        method: 'POST',
+      const response = await fetch("/api/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...userData,
-          action: 'update',
+          action: "update",
         }),
       });
-  
+
       if (response.ok) {
         const updatedUser = await response.json();
-        
-        // Update the local session/user state with the updated user data
+
         setUserData({
           firstName: updatedUser.user.firstName,
           email: updatedUser.user.email,
           phone: updatedUser.user.phone,
-          password: '', // Clear the password field to prevent it from displaying
+          password: "", // Clear the password field to prevent it from displaying
         });
-  
+
+        // Reset original data after a successful save
+        setOriginalData({
+          firstName: updatedUser.user.firstName,
+          email: updatedUser.user.email,
+          phone: updatedUser.user.phone,
+          password: "", // Don't store the password
+        });
+
         console.log("User info updated successfully");
       } else {
         console.error("Failed to update user info");
       }
-  
-      setIsEditing({ field: '', editing: false });
+
+      setIsEditing({ field: "", editing: false });
     } catch (error) {
       console.error("Error updating user info:", error);
     }
   };
-  
-  
+
+  const handleCancel = () => {
+    // Reset the form fields to their original values
+    setUserData(originalData);
+    setIsEditing({ field: "", editing: false });
+  };
+
   const renderContent = () => {
     switch (activeSection) {
-      case 'account':
+      case "account":
         return (
           <div className="account-info">
             <h2>Account</h2>
             <div className="info-item">
               <div className="label">Username</div>
               <div className="value">
-                {isEditing.editing && isEditing.field === 'firstName' ? (
+                {isEditing.editing && isEditing.field === "firstName" ? (
                   <input
                     type="text"
                     name="firstName"
@@ -83,13 +124,15 @@ export default function UserInfo() {
                 ) : (
                   <span>{userData.firstName}</span>
                 )}
-                <a href="#" onClick={() => handleEditClick('firstName')}>change</a>
+                <a href="#" onClick={() => handleEditClick("firstName")}>
+                  change
+                </a>
               </div>
             </div>
             <div className="info-item">
               <div className="label">E-mail address</div>
               <div className="value">
-                {isEditing.editing && isEditing.field === 'email' ? (
+                {isEditing.editing && isEditing.field === "email" ? (
                   <input
                     type="text"
                     name="email"
@@ -99,13 +142,15 @@ export default function UserInfo() {
                 ) : (
                   <span>{userData.email}</span>
                 )}
-                <a href="#" onClick={() => handleEditClick('email')}>change</a>
+                <a href="#" onClick={() => handleEditClick("email")}>
+                  change
+                </a>
               </div>
             </div>
             <div className="info-item">
               <div className="label">Phone number</div>
               <div className="value">
-                {isEditing.editing && isEditing.field === 'phone' ? (
+                {isEditing.editing && isEditing.field === "phone" ? (
                   <input
                     type="text"
                     name="phone"
@@ -115,13 +160,15 @@ export default function UserInfo() {
                 ) : (
                   <span>{userData.phone}</span>
                 )}
-                <a href="#" onClick={() => handleEditClick('phone')}>change</a>
+                <a href="#" onClick={() => handleEditClick("phone")}>
+                  change
+                </a>
               </div>
             </div>
             <div className="info-item">
               <div className="label">Password</div>
               <div className="value">
-                {isEditing.editing && isEditing.field === 'password' ? (
+                {isEditing.editing && isEditing.field === "password" ? (
                   <input
                     type="password"
                     name="password"
@@ -131,12 +178,15 @@ export default function UserInfo() {
                 ) : (
                   <span>********</span>
                 )}
-                <a href="#" onClick={() => handleEditClick('password')}>change</a>
+                <a href="#" onClick={() => handleEditClick("password")}>
+                  change
+                </a>
               </div>
             </div>
             {isEditing.editing && (
-              <div className="save-button">
+              <div className="button-group">
                 <button onClick={handleSave}>Save</button>
+                <button onClick={handleCancel} className="cancel-button">Cancel</button>
               </div>
             )}
           </div>
@@ -246,15 +296,14 @@ export default function UserInfo() {
       </div>
 
       <div className="main-content">
-        <div className="header">
-          <div className="user-summary">
-            <p className="username">{session?.user?.firstName}</p>
-            <p className="user-email">{session?.user?.email}</p>
-            <p className="user-phone">{session?.user?.phone}</p>
-          </div>
-          <button className="logout-button" onClick={handleSignOut}>LOGOUT</button>
+            <div className="header">
+        <div className="user-summary">
+          <p className="username">{userData.firstName}</p> 
+          <p className="user-email">{userData.email}</p>
+          <p className="user-phone">{userData.phone}</p>
         </div>
-
+        <button className="logout-button" onClick={handleSignOut}>LOGOUT</button>
+      </div>
         {renderContent()}
       </div>
     </div>
