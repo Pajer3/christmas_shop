@@ -7,7 +7,7 @@ import Image from 'next/image';
 import styles from './CartSummary.module.css';
 
 export default function CartSummary() {
-  const { cart } = useCart();
+  const { cart, removeFromCart, clearCart } = useCart();
 
   // Calculate total items and total price
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -33,18 +33,28 @@ export default function CartSummary() {
                   <p>
                     {item.quantity} x ${item.price.toFixed(2)}
                   </p>
+                  <button onClick={() => removeFromCart(item.productId)} className={styles.removeItemButton}>
+                    Remove
+                  </button>
                 </div>
               </li>
             ))}
           </ul>
         )}
         {cart.length > 0 && (
-          <div className={styles.cartTotal}>
-            <p>Total: ${totalPrice.toFixed(2)}</p>
-            <Link href="/checkout" className={styles.checkoutButton}>
-              Checkout
-            </Link>
-          </div>
+          <>
+            <div className={styles.cartTotal}>
+              <p>Total: ${totalPrice.toFixed(2)}</p>
+            </div>
+            <div className={styles.cartActions}>
+              <Link href="/checkout" className={styles.checkoutButton}>
+                Checkout
+              </Link>
+              <button onClick={clearCart} className={styles.clearCartButton}>
+                Clear Cart
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

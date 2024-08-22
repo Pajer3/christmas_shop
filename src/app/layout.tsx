@@ -3,6 +3,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ClientLayout from '../components/ClientLayout'; // Import the new client-side layout
 import '@flaticon/flaticon-uicons/css/all/all.css';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poppins',
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+});
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${poppins.variable}`}>
        <head>
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.5.1/uicons-solid-rounded/css/uicons-solid-rounded.css" />
       </head>

@@ -30,7 +30,6 @@ const productSchema = new Schema({
     },
 }, { timestamps: true });
 
-// Check if the model exists already (to avoid re-compiling)
 const Product = models.Product || model('Product', productSchema);
 
 export default Product;

@@ -1,22 +1,21 @@
-// context/CartContext.tsx
 "use client";
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
-
 export interface CartItem {
   productId: string;
   quantity: number;
-  name: string;      // The name of the product
-  price: number;     // The price of the product
-  imageUrl: string;  // The image URL of the product
+  name: string;
+  description: string; 
+  price: number;
+  imageUrl: string;
 }
-
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (productId: string) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (productId: string) => void;
+  updateCartItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
 }
 
@@ -37,18 +36,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const loadCart = async () => {
       if (session) {
-        // Load cart from the database for logged-in users
         try {
           const res = await fetch('/api/cart');
           if (res.ok) {
             const data = await res.json();
             setCart(data.cartItems || []);
+          } else {
+            console.error('Failed to load cart from server:', res.statusText);
           }
         } catch (error) {
-          console.error('Failed to load cart:', error);
+          console.error('Failed to load cart from server:', error);
         }
       } else {
-        // Load cart from local storage for guest users
         const localCart = localStorage.getItem('cart');
         if (localCart) {
           setCart(JSON.parse(localCart));
@@ -59,64 +58,71 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     loadCart();
   }, [session]);
 
-  const addToCart = async (productId: string) => {
+  const saveCartToServer = async (updatedCart: CartItem[]) => {
+    if (session) {
+      try {
+        const res = await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart: updatedCart }),
+        });
+        if (!res.ok) {
+          console.error('Failed to save cart to server:', res.statusText);
+        }
+      } catch (error) {
+        console.error('Error saving cart to server:', error);
+      }
+    } else {
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+    }
+  };
+
+  const addToCart = async (item: CartItem) => {
     const updatedCart = [...cart];
-    const existingItem = updatedCart.find(item => item.productId === productId);
+    const existingItem = updatedCart.find(cartItem => cartItem.productId === item.productId);
 
     if (existingItem) {
-      existingItem.quantity += 1;
+      existingItem.quantity += item.quantity;
     } else {
-      updatedCart.push({
-        productId, quantity: 1,
-        name: '',
-        price: 0,
-        imageUrl: ''
-      });
+      updatedCart.push(item);
     }
 
     setCart(updatedCart);
-
-    if (session) {
-      // Save cart to the database
-      await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: updatedCart }),
-      });
-    } else {
-      // Save cart to local storage for guest users
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-    }
+    await saveCartToServer(updatedCart);
   };
 
   const removeFromCart = async (productId: string) => {
     const updatedCart = cart.filter(item => item.productId !== productId);
     setCart(updatedCart);
-
-    if (session) {
-      // Update cart in the database
-      await fetch('/api/cart', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
-      });
-    } else {
-      // Update local storage for guest users
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-    }
+    await saveCartToServer(updatedCart);
   };
 
-  const clearCart = () => {
+  const updateCartItemQuantity = async (productId: string, newQuantity: number) => {
+    const updatedCart = cart.map(item => 
+      item.productId === productId ? { ...item, quantity: newQuantity } : item
+    );
+    setCart(updatedCart);
+    await saveCartToServer(updatedCart);
+  };
+
+  const clearCart = async () => {
     setCart([]);
     if (session) {
-      fetch('/api/cart', { method: 'DELETE' });
+      try {
+        const res = await fetch('/api/cart', { method: 'DELETE' });
+        if (!res.ok) {
+          console.error('Failed to clear cart on server:', res.statusText);
+        }
+      } catch (error) {
+        console.error('Error clearing cart on server:', error);
+      }
     } else {
       localStorage.removeItem('cart');
     }
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateCartItemQuantity, clearCart }}>
       {children}
     </CartContext.Provider>
   );

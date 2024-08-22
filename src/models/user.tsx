@@ -1,6 +1,35 @@
-import mongoose, { models } from "mongoose";
+import mongoose, { Schema, model, models } from "mongoose";
 
-const userSchema = new mongoose.Schema({
+// Define the schema for items in the cart
+const cartItemSchema = new Schema({
+    productId: {
+        type: String,
+        required: true,
+    },
+    quantity: {
+        type: Number,
+        required: true,
+        default: 1,
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    imageUrl: {
+        type: String,
+        required: true,
+    },
+});
+
+const userSchema = new Schema({
     firstName: {
         type: String,
         required: true,
@@ -21,6 +50,10 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String,
         required: true,
+    },
+    cart: {
+        type: [cartItemSchema], // Embed the cart items schema as an array in the User schema
+        default: [], // Initialize as an empty array
     },
 }, { timestamps: true });
 

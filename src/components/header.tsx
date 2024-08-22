@@ -24,8 +24,8 @@ export default function Header() {
           <Link href="/" className={`header-link ${pathName === '/' ? 'active-page-link' : ''}`}>
             HOME
           </Link>
-          <Link href="/shop" className={`header-link ${pathName === '/shop' ? 'active-page-link' : ''}`}>
-            SHOP
+          <Link href="/discover" className={`header-link ${pathName === '/discover' ? 'active-page-link' : ''}`}>
+            DISCOVER
           </Link>
           {status === 'authenticated' ? (
             <>
