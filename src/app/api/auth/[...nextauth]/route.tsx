@@ -16,7 +16,7 @@ const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                // Find user in the database by email
+                // Find the user in the database by email
                 const user = await User.findOne({ email: credentials.email });
                 if (!user) {
                     return null;
@@ -28,23 +28,37 @@ const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                // Return the user object with additional properties like 'role'
+                // Return the user object, including properties like 'role'
                 return {
                     id: user._id.toString(),
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     phone: user.phone,
-                    role: user.role, // Make sure 'role' exists in your User schema
+                    role: user.role, // Ensure 'role' exists in your User schema
                 };
             },
         }),
     ],
     session: {
-        strategy: "jwt",
+        strategy: "jwt", // Use JWT for session management
     },
-  callbacks: {
+    callbacks: {
+        async jwt({ token, user }) {
+            // If it's the initial sign-in, populate the token with user info
+            if (user) {
+                token.id = user.id;
+                token.email = user.email;
+                token.firstName = user.firstName;
+                token.lastName = user.lastName;
+                token.phone = user.phone;
+                token.role = user.role;
+            }
+            // Return the token, ensuring it contains all necessary fields
+            return token;
+        },
         async session({ session, token }) {
+            // Populate the session with the user's token data
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.email = token.email as string;
@@ -55,24 +69,15 @@ const authOptions: NextAuthOptions = {
             }
             return session;
         },
-        async jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-                token.email = user.email;
-                token.firstName = user.firstName;
-                token.lastName = user.lastName;
-                token.phone = user.phone;
-                token.role = user.role; // Store the role in the token
-            }
-            return token;
-        },
     },
-    secret: process.env.NEXTAUTH_SECRET,
     pages: {
-        signIn: "/login",
+        signIn: "/login", // Custom sign-in page
     },
+    secret: process.env.NEXTAUTH_SECRET, // Ensure you have a valid secret
 };
 
+// NextAuth handler, exported for use in API routes
 const handler = NextAuth(authOptions);
 
+// Export the handler for GET and POST requests
 export { handler as GET, handler as POST };

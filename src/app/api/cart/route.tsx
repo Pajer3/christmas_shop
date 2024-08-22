@@ -35,6 +35,8 @@ async function handleGet(req: NextRequest) {
     await ConnectMongoDb();
 
     const token = await getToken({ req });
+    console.log("Token retrieved:", token); // Debug log
+
     if (!token || !token.email) {
       console.error("Unauthorized request, no valid token found");
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
