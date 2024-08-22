@@ -12,15 +12,28 @@ interface CartItem {
   imageUrl: string;
 }
 
-// Type guard to check if the error is an instance of Error
 function isError(error: unknown): error is Error {
   return typeof error === 'object' && error !== null && 'message' in error;
 }
 
-export async function GET(req: NextRequest) {
+export async function handler(req: NextRequest) {
+  if (req.method === 'GET') {
+    return handleGet(req);
+  } else if (req.method === 'POST') {
+    return handlePost(req);
+  } else if (req.method === 'DELETE') {
+    return handleDelete(req);
+  } else if (req.method === 'PUT') {
+    return handlePut(req);
+  } else {
+    return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
+  }
+}
+
+async function handleGet(req: NextRequest) {
   try {
     await ConnectMongoDb();
-    
+
     const token = await getToken({ req });
     if (!token || !token.email) {
       console.error("Unauthorized request, no valid token found");
@@ -44,7 +57,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     await ConnectMongoDb();
     const token = await getToken({ req });
@@ -61,7 +74,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const { cart } = await req.json();
+    const { cart }: { cart: CartItem[] } = await req.json();
     user.cart = cart;
     await user.save();
     return NextResponse.json({ message: 'Cart updated' });
@@ -75,7 +88,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+async function handleDelete(req: NextRequest) {
   try {
     await ConnectMongoDb();
     const token = await getToken({ req });
@@ -117,8 +130,7 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-
-export async function PUT(req: NextRequest) {
+async function handlePut(req: NextRequest) {
   try {
     await ConnectMongoDb();
     const token = await getToken({ req });
@@ -154,3 +166,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ message: 'Server error', error: isError(error) ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
+
+// Export the handler as the default export
+export default handler;
