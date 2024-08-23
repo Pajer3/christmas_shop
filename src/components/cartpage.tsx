@@ -1,4 +1,4 @@
-// pages/cart/page.tsx
+// src/pages/cart/page.tsx
 "use client";
 
 import { useCart } from '@/context/cartcontext';
@@ -97,7 +97,7 @@ export default function CartPage() {
           <p>ESTIMATED TOTAL: ${estimatedTotal.toFixed(2)}</p>
         </div>
         
-        <button className={styles.checkoutButton}>CHECKOUT</button>
+        <button onClick={clearCart} className={styles.checkoutButton}>CHECKOUT</button>
       </div>
     </div>
   );

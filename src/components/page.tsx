@@ -39,7 +39,7 @@ export default function Page() {
       name: product.name,
       price: product.price,
       imageUrl: product.imageUrl,
-      description: ''
+      description: product.description // Ensure description is included
     });
   };
 
@@ -66,7 +66,7 @@ export default function Page() {
   return (
     <main>
       <div className="banner">
-        <Image src="/images/Group128.png" alt="banner" width={1200} height={300} priority/>
+        <Image src="/images/Group128.png" alt="banner" width={1200} height={300} priority />
       </div>
 
       <div className="search-bar">
@@ -78,7 +78,7 @@ export default function Page() {
         {products.map((product) => (
           <div className="product-placeholder" key={product._id}>
             <div className="image-placeholder">
-              <Image className='img-border' src={product.imageUrl} alt={product.name} width={250} height={150} />
+              <Image className="img-border" src={product.imageUrl} alt={product.name} width={250} height={150} />
             </div>
             <div className="title-placeholder">{product.name}</div>
             <div className="description-placeholder">Price: ${product.price}</div>
@@ -115,7 +115,7 @@ export default function Page() {
       </div>
 
       <div className="product-grid">
-        {products.slice(totalPlaceholders).map((product, index) => (
+        {products.slice(totalPlaceholders).map((product) => (
           <div className="product-placeholder" key={`grid-2-${product._id}`}>
             <div className="image-placeholder">
               <Image src={product.imageUrl} alt={product.name} width={150} height={150} />
